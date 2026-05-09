@@ -140,7 +140,7 @@ The whole thing is roughly 850 lines of HTML, CSS, and JavaScript in one file. N
 
 **Phase 3: More trades.** The architecture is trade-agnostic. The same pattern (realistic scenario + Kolb-cycle prompts + skill-level adaptation) works for plumbers learning Excel, HVAC contractors learning estimating, general contractors learning project tracking — anyone whose formal training didn't include the spreadsheet skills their business depends on.
 
-**Phase 4: Reflection and assessment.** Module 5 of Ohio University's Experiential Learning curriculum emphasizes that EL needs assessment to be effective. A future version will ask the learner to reflect on what they figured out at the end of each scenario, and save those reflections for the learner (and, optionally, for an instructor in a classroom setting).
+**Phase 4: Reflection and assessment.** A future version will ask the learner to reflect on what they figured out at the end of each scenario, and save those reflections for the learner (and, optionally, for an instructor in a classroom setting).
 
 ---
 
