@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Sparky — Excel for Electricians</title>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Roboto+Slab:wght@400;500;700;900&family=Special+Elite&display=swap');
+
+  :root {
+    --paper: #f4ecd8;
+    --paper-dark: #e8dcc4;
+    --paper-light: #fffaeb;
+    --ink: #1a2332;
+    --ink-soft: #3d4a5c;
+    --green: #2d4a3e;
+    --green-bright: #4a7659;
+    --caution: #f4c430;
+    --rust: #a64b2a;
+    --rule: #8b7d5e;
+    --shadow: rgba(26, 35, 50, 0.15);
+    --excel-green: #217346;
+    --excel-grid: #d4d4d4;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+
+  body {
+    font-family: 'Roboto Slab', Georgia, serif;
+    background: var(--paper);
+    background-image:
+      linear-gradient(var(--rule) 1px, transparent 1px),
+      linear-gradient(90deg, var(--rule) 1px, transparent 1px);
+    background-size: 28px 28px;
+    background-position: -1px -1px;
+    background-blend-mode: soft-light;
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 16px;
+    line-height: 1.55;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    background-image:
+      radial-gradient(circle at 20% 30%, rgba(139, 125, 94, 0.04) 0%, transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(139, 125, 94, 0.04) 0%, transparent 40%);
+    z-index: 0;
+  }
+
+  .container {
+    max-width: 1500px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  .header {
+    background: var(--ink);
+    color: var(--paper);
+    padding: 16px 28px;
+    border-radius: 6px 6px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 4px 12px var(--shadow);
+    position: relative;
+  }
+
+  .header::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80px;
+    height: 16px;
+    background: #444;
+    border-radius: 3px;
+    box-shadow: inset 0 -2px 4px rgba(0,0,0,0.4);
+  }
+
+  .brand { display: flex; align-items: baseline; gap: 12px; }
+  .brand-mark {
+    font-family: 'Special Elite', monospace;
+    font-size: 1.9rem;
+    color: var(--caution);
+    letter-spacing: 1px;
+    text-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+  }
+  .brand-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--paper-dark);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    opacity: 0.75;
+  }
+
+  .header-status {
+    display: flex; align-items: center; gap: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem; color: var(--paper-dark);
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+
+  .status-dot {
+    width: 8px; height: 8px;
+    background: var(--green-bright);
+    border-radius: 50%;
+    box-shadow: 0 0 8px var(--green-bright);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%, 100% { opacity: 0.6; } 50% { opacity: 1; } }
+
+  .main-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    border-top: none;
+    box-shadow: 0 4px 12px var(--shadow);
+    overflow: hidden;
+  }
+
+  @media (max-width: 980px) {
+    .main-grid { grid-template-columns: 1fr; }
+  }
+
+  .bid-panel {
+    padding: 22px 24px;
+    border-right: 2px dashed var(--rule);
+    background: var(--paper);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  @media (max-width: 980px) {
+    .bid-panel { border-right: none; border-bottom: 2px dashed var(--rule); }
+  }
+
+  .panel-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px; padding-bottom: 10px;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .panel-title {
+    font-family: 'Roboto Slab', serif;
+    font-weight: 900; font-size: 1rem;
+    color: var(--ink);
+    text-transform: uppercase; letter-spacing: 1.5px;
+  }
+
+  .download-btn {
+    background: var(--excel-green);
+    color: white; border: none;
+    padding: 6px 12px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+    cursor: pointer; border-radius: 3px;
+    display: flex; align-items: center; gap: 6px;
+    transition: all 0.15s ease;
+  }
+  .download-btn:hover { background: #185c38; }
+  .download-btn::before { content: '⬇'; font-size: 0.9rem; }
+
+  /* ============================================
+     WORKFLOW STRIP — three-step instruction + big download
+     ============================================ */
+  .workflow-strip {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin-bottom: 14px;
+    border: 2px solid var(--ink);
+    background: var(--paper-light);
+    overflow: hidden;
+  }
+
+  .workflow-steps {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 12px 16px;
+    gap: 6px;
+  }
+
+  .workflow-step {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: var(--ink);
+  }
+
+  .step-num {
+    background: var(--ink);
+    color: var(--caution);
+    width: 20px;
+    height: 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 0.72rem;
+    flex-shrink: 0;
+  }
+
+  .step-text {
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .download-btn-big {
+    background: var(--caution);
+    color: var(--ink);
+    border: none;
+    border-left: 2px solid var(--ink);
+    padding: 16px 20px;
+    cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    min-width: 180px;
+    transition: all 0.15s ease;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .download-btn-big::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      45deg,
+      transparent,
+      transparent 8px,
+      rgba(26, 35, 50, 0.04) 8px,
+      rgba(26, 35, 50, 0.04) 16px
+    );
+    pointer-events: none;
+  }
+
+  .download-btn-big:hover {
+    background: #ffd84a;
+    box-shadow: inset 0 0 0 4px var(--ink);
+  }
+
+  .download-btn-big:active {
+    transform: translateY(1px);
+  }
+
+  .download-icon {
+    font-size: 1.6rem;
+    line-height: 1;
+    margin-bottom: 2px;
+  }
+
+  .download-label {
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+
+  .download-sub {
+    font-size: 0.65rem;
+    opacity: 0.7;
+    letter-spacing: 0.5px;
+  }
+
+  .preview-label {
+    text-align: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+    opacity: 0.7;
+  }
+
+  /* On narrow screens, stack the workflow strip */
+  @media (max-width: 600px) {
+    .workflow-strip { flex-direction: column; }
+    .download-btn-big {
+      border-left: none;
+      border-top: 2px solid var(--ink);
+      min-width: auto;
+      width: 100%;
+    }
+  }
+
+  .scenario-detail {
+    background: var(--paper-dark);
+    border-left: 4px solid var(--caution);
+    padding: 10px 14px;
+    margin-bottom: 14px;
+    font-size: 0.82rem;
+    color: var(--ink-soft);
+    line-height: 1.45;
+  }
+  .scenario-detail strong { color: var(--ink); font-weight: 700; }
+
+  .sheet-wrap {
+    flex: 1;
+    overflow: auto;
+    border: 1px solid var(--excel-grid);
+    background: white;
+    max-height: 540px;
+  }
+
+  .sheet {
+    border-collapse: collapse;
+    width: 100%;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    background: white;
+  }
+
+  .sheet th, .sheet td {
+    border: 1px solid var(--excel-grid);
+    padding: 4px 8px;
+    text-align: left;
+    color: #222;
+    background: white;
+    height: 24px;
+  }
+
+  .sheet thead th {
+    background: #f0f0f0;
+    color: #555;
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.7rem;
+    height: 20px;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+  }
+
+  .sheet td.rownum {
+    background: #f0f0f0;
+    color: #555;
+    text-align: center;
+    font-weight: 600;
+    font-size: 0.7rem;
+    width: 32px;
+    position: sticky;
+    left: 0;
+    z-index: 1;
+  }
+
+  .sheet td.section {
+    background: var(--ink);
+    color: var(--caution);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-size: 0.72rem;
+  }
+
+  .sheet td.num { text-align: right; font-variant-numeric: tabular-nums; }
+
+  .sheet td.blank {
+    background: #fffbe6;
+    color: var(--rust);
+    font-style: italic;
+    text-align: right;
+  }
+  .sheet td.blank::after {
+    content: '?';
+    color: var(--rust);
+    opacity: 0.6;
+  }
+
+  /* Data header row — Item/Qty/Unit Price/Line Total */
+  .sheet tr.data-header td {
+    background: var(--paper-dark);
+    font-weight: 700;
+    color: var(--ink);
+    border-bottom: 2px solid var(--ink);
+  }
+
+  .sheet tr.total td {
+    border-top: 2px solid var(--ink);
+    font-weight: 700;
+    background: #fff8e0;
+  }
+
+  .sheet-tip {
+    margin-top: 8px;
+    padding: 6px 10px;
+    background: var(--paper-light);
+    border: 1px dashed var(--rule);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--ink-soft);
+    line-height: 1.4;
+  }
+
+  .chat-panel {
+    padding: 22px 24px;
+    background: var(--paper);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .level-row {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 14px; padding-bottom: 12px;
+    border-bottom: 1px dashed var(--rule);
+    flex-wrap: wrap;
+  }
+
+  .level-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+  }
+
+  .level-btn {
+    background: transparent;
+    border: 1.5px solid var(--ink);
+    color: var(--ink);
+    padding: 5px 11px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+  .level-btn:hover { background: var(--paper-dark); }
+  .level-btn.active { background: var(--ink); color: var(--caution); }
+
+  .conversation {
+    flex: 1;
+    overflow-y: auto;
+    padding: 4px 4px 4px 0;
+    margin-bottom: 14px;
+    min-height: 320px;
+    max-height: 540px;
+  }
+  .conversation::-webkit-scrollbar { width: 8px; }
+  .conversation::-webkit-scrollbar-track { background: transparent; }
+  .conversation::-webkit-scrollbar-thumb { background: var(--rule); border-radius: 4px; }
+
+  .turn { margin-bottom: 16px; animation: fadeIn 0.3s ease; }
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .turn-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+  }
+  .turn.user .turn-label { color: var(--rust); }
+  .turn.sparky .turn-label { color: var(--green); }
+
+  .turn-body {
+    background: var(--paper);
+    border: 1px solid var(--ink);
+    padding: 12px 16px;
+    font-size: 0.92rem;
+    line-height: 1.55;
+    white-space: pre-wrap;
+  }
+  .turn.user .turn-body {
+    background: var(--paper-dark);
+    border-left: 4px solid var(--rust);
+    margin-left: 16px;
+  }
+  .turn.sparky .turn-body {
+    background: var(--paper-light);
+    border-left: 4px solid var(--green);
+    margin-right: 16px;
+  }
+  .turn-body strong { color: var(--ink); font-weight: 700; }
+  .turn-body code {
+    background: var(--ink);
+    color: var(--caution);
+    padding: 2px 6px;
+    border-radius: 2px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.86em;
+  }
+
+  .stage-tag {
+    display: inline-block;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.6rem;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    background: var(--green);
+    color: var(--paper);
+    padding: 2px 8px;
+    margin-left: 8px;
+    border-radius: 2px;
+    vertical-align: middle;
+  }
+
+  .input-row {
+    display: flex; gap: 10px;
+    padding-top: 14px;
+    border-top: 2px solid var(--ink);
+  }
+
+  .input-field {
+    flex: 1;
+    background: var(--paper);
+    border: 2px solid var(--ink);
+    padding: 11px 14px;
+    font-family: 'Roboto Slab', serif;
+    font-size: 0.92rem;
+    color: var(--ink);
+    resize: none;
+    min-height: 46px;
+    max-height: 110px;
+  }
+  .input-field:focus {
+    outline: none;
+    background: var(--paper-light);
+    box-shadow: 0 0 0 3px var(--caution);
+  }
+  .input-field::placeholder {
+    color: var(--ink-soft);
+    opacity: 0.5;
+    font-style: italic;
+  }
+
+  .send-btn {
+    background: var(--ink);
+    color: var(--caution);
+    border: 2px solid var(--ink);
+    padding: 11px 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    align-self: stretch;
+  }
+  .send-btn:hover:not(:disabled) {
+    background: var(--green);
+    border-color: var(--green);
+  }
+  .send-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .footer {
+    margin-top: 14px;
+    padding: 10px 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    color: var(--ink-soft);
+    text-align: center;
+    letter-spacing: 1px;
+    opacity: 0.7;
+  }
+  .footer .pill {
+    display: inline-block;
+    padding: 2px 8px;
+    border: 1px solid var(--ink-soft);
+    border-radius: 2px;
+    margin: 2px 4px;
+  }
+
+  .thinking { display: inline-block; color: var(--green); font-family: 'JetBrains Mono', monospace; font-size: 0.85rem; }
+  .thinking::after { content: ''; animation: dots 1.4s steps(4, end) infinite; }
+  @keyframes dots {
+    0%, 20% { content: ''; }
+    40% { content: '.'; }
+    60% { content: '..'; }
+    80%, 100% { content: '...'; }
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="header">
+    <div class="brand">
+      <span class="brand-mark">SPARKY</span>
+      <span class="brand-tag">Excel for the trades</span>
+    </div>
+    <div class="header-status">
+      <span class="status-dot"></span>
+      <span>Local · Gemma 4</span>
+    </div>
+  </div>
+
+  <div class="main-grid">
+
+    <div class="bid-panel">
+      <div class="panel-head">
+        <div class="panel-title">Bid Sheet · 200A Service Upgrade</div>
+      </div>
+
+      <div class="scenario-detail">
+        <strong>Customer:</strong> Single-family home, built 1972. Upgrading from 100A overhead service to 200A underground. Adding a 50A circuit for a Level-2 EV charger and a 60A circuit for a hot tub.
+      </div>
+
+      <!-- WORKFLOW INSTRUCTION STRIP -->
+      <div class="workflow-strip">
+        <div class="workflow-steps">
+          <div class="workflow-step">
+            <span class="step-num">1</span>
+            <span class="step-text">Download the bid sheet</span>
+          </div>
+          <div class="workflow-step">
+            <span class="step-num">2</span>
+            <span class="step-text">Open it in Excel</span>
+          </div>
+          <div class="workflow-step">
+            <span class="step-num">3</span>
+            <span class="step-text">Ask Sparky about the blanks →</span>
+          </div>
+        </div>
+        <button class="download-btn-big" onclick="downloadXlsx()">
+          <span class="download-icon">⬇</span>
+          <span class="download-label">Download Bid Sheet</span>
+          <span class="download-sub">sparky_200A_bid.xlsx</span>
+        </button>
+      </div>
+
+      <div class="preview-label">↓ Preview · this is what's in the file ↓</div>
+
+      <div class="sheet-wrap">
+        <table class="sheet" id="sheet"></table>
+      </div>
+
+      <div class="sheet-tip">
+        Yellow cells with <span style="color: var(--rust)">?</span> are blank — Sparky helps you fill those in. Cell references use column + row, like <code style="background: var(--ink); color: var(--caution); padding: 1px 4px;">D7</code>.
+      </div>
+    </div>
+
+    <div class="chat-panel">
+
+      <div class="level-row">
+        <span class="level-label">I'm:</span>
+        <button class="level-btn active" onclick="setLevel('apprentice', this)">Apprentice</button>
+        <button class="level-btn" onclick="setLevel('journeyman', this)">Journeyman</button>
+        <button class="level-btn" onclick="setLevel('master', this)">Master / Owner</button>
+      </div>
+
+      <div class="conversation" id="conversation">
+        <div class="turn sparky">
+          <div class="turn-label">Sparky</div>
+          <div class="turn-body">Hey. I'm Sparky. The bid sheet on your left is for a 200-amp service upgrade — pretty common job.<br><br><strong>To actually work on it:</strong> hit the big yellow <strong>download</strong> button on your left and open the file in Excel. The on-screen version is just so we can both see what we're talking about.<br><br>Once you've got it open, pick one of the yellow blank cells and ask me about it. I'll walk you through it without making you feel dumb.</div>
+        </div>
+      </div>
+
+      <div class="input-row">
+        <textarea
+          id="input"
+          class="input-field"
+          placeholder="Type what you're stuck on. Reference cells like D14 if it helps."
+          onkeydown="handleKey(event)"
+        ></textarea>
+        <button id="send-btn" class="send-btn" onclick="send()">Ask</button>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="footer">
+    <span class="pill">100% offline</span>
+    <span class="pill">Built on Kolb's Experiential Learning Cycle</span>
+    <span class="pill">By an Excel professor whose son is an electrician</span>
+  </div>
+
+</div>
+
+<script>
+  const OLLAMA_URL = 'http://localhost:11434/api/chat';
+  const MODEL = 'gemma4:e4b';
+
+  let level = 'apprentice';
+  let history = [];
+
+  // Single source of truth for the bid sheet — drives both the on-screen render AND the .xlsx export.
+  const BID_ROWS = [
+    { type: 'header', A: 'Item', B: 'Qty', C: 'Unit Price', D: 'Line Total' },
+
+    { type: 'section', A: 'MATERIALS' },
+    { type: 'data', A: 'Main breaker panel, 200A',           B: 1,  C: 348.00, D: 348.00 },
+    { type: 'data', A: 'Service mast + weatherhead + riser', B: 1,  C: 215.00, D: 215.00 },
+    { type: 'data', A: '4/0 SER cable (per ft)',             B: 75, C: 9.85,   D: 738.75 },
+    { type: 'data', A: 'Grounding electrode kit + #4 Cu',    B: 1,  C: 112.00, D: 112.00 },
+    { type: 'data', A: 'NEMA 14-50 outlet (EV)',             B: 1,  C: 48.00,  D: 48.00 },
+    { type: 'data', A: '6/3 NM-B (per ft, EV circuit)',      B: 60, C: 3.45,   D: 207.00 },
+    { type: 'data', A: 'Hot tub disconnect, 60A',            B: 1,  C: 118.00, D: 118.00 },
+    { type: 'data', A: '6/3 UF-B (per ft, hot tub)',         B: 40, C: 4.20,   D: 168.00 },
+    { type: 'data', A: 'Misc (lugs, staples, wire nuts)',    B: 1,  C: 65.00,  D: 65.00 },
+    { type: 'subtotal', A: 'MATERIALS SUBTOTAL', B: '', C: '', D: null, blank: ['D'] },
+
+    { type: 'blank-row' },
+
+    { type: 'section', A: 'LABOR' },
+    { type: 'data', A: 'Service entrance install',    B: 7, C: 95.00, D: null, blank: ['D'] },
+    { type: 'data', A: 'Panel + circuit termination', B: 5, C: 95.00, D: null, blank: ['D'] },
+    { type: 'data', A: 'EV circuit run',              B: 3, C: 95.00, D: null, blank: ['D'] },
+    { type: 'data', A: 'Hot tub circuit run',         B: 3, C: 95.00, D: null, blank: ['D'] },
+    { type: 'data', A: 'Inspection + walkthrough',    B: 2, C: 95.00, D: null, blank: ['D'] },
+    { type: 'subtotal', A: 'LABOR SUBTOTAL', B: '', C: '', D: null, blank: ['D'] },
+
+    { type: 'blank-row' },
+
+    { type: 'section', A: 'PERMITS / FEES' },
+    { type: 'data', A: 'Building permit',                  B: 1, C: 285.00, D: 285.00 },
+    { type: 'data', A: 'Utility disconnect/reconnect fee', B: 1, C: 225.00, D: 225.00 },
+
+    { type: 'blank-row' },
+
+    { type: 'section', A: 'TOTALS' },
+    { type: 'data', A: 'Materials markup (25%)',     B: '', C: '', D: null, blank: ['D'] },
+    { type: 'data', A: 'Sales tax on materials (7%)', B: '', C: '', D: null, blank: ['D'] },
+    { type: 'total', A: 'GRAND TOTAL', B: '', C: '', D: null, blank: ['D'] },
+  ];
+
+  function renderSheet() {
+    const sheet = document.getElementById('sheet');
+    let html = '<thead><tr><th></th>';
+    ['A', 'B', 'C', 'D'].forEach(col => html += `<th>${col}</th>`);
+    html += '</tr></thead><tbody>';
+
+    let rowNum = 1;
+    BID_ROWS.forEach(row => {
+      let trClass = '';
+      if (row.type === 'total') trClass = 'total';
+      else if (row.type === 'header') trClass = 'data-header';
+      html += '<tr' + (trClass ? ` class="${trClass}"` : '') + '>';
+      html += `<td class="rownum">${rowNum}</td>`;
+
+      if (row.type === 'section') {
+        html += `<td class="section" colspan="4">${row.A || ''}</td>`;
+      } else if (row.type === 'blank-row') {
+        html += '<td colspan="4">&nbsp;</td>';
+      } else {
+        ['A', 'B', 'C', 'D'].forEach(col => {
+          const isBlank = row.blank && row.blank.includes(col);
+          let val = row[col];
+          let cls = '';
+          if (isBlank) cls = 'blank';
+          else if (col === 'B' || col === 'C' || col === 'D') cls = 'num';
+
+          let display = '';
+          if (!isBlank && val !== undefined && val !== null && val !== '') {
+            // Only format as currency for data/subtotal/total rows — never the header
+            if ((col === 'C' || col === 'D') && row.type !== 'header') {
+              display = '$' + Number(val).toFixed(2);
+            } else {
+              display = val;
+            }
+          }
+
+          html += `<td class="${cls}">${display}</td>`;
+        });
+      }
+
+      html += '</tr>';
+      rowNum++;
+    });
+
+    html += '</tbody>';
+    sheet.innerHTML = html;
+  }
+
+  function downloadXlsx() {
+    const aoa = [];
+    BID_ROWS.forEach(row => {
+      if (row.type === 'header') {
+        aoa.push([row.A, row.B, row.C, row.D]);
+      } else if (row.type === 'section') {
+        aoa.push([row.A || '', '', '', '']);
+      } else if (row.type === 'blank-row') {
+        aoa.push(['', '', '', '']);
+      } else {
+        const isBlank = (col) => row.blank && row.blank.includes(col);
+        aoa.push([
+          row.A || '',
+          isBlank('B') ? '' : (row.B === undefined ? '' : row.B),
+          isBlank('C') ? '' : (row.C === undefined ? '' : row.C),
+          isBlank('D') ? '' : (row.D === undefined ? '' : row.D),
+        ]);
+      }
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    ws['!cols'] = [{ wch: 38 }, { wch: 8 }, { wch: 12 }, { wch: 14 }];
+
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Bid');
+    XLSX.writeFile(wb, 'sparky_200A_service_upgrade_bid.xlsx');
+  }
+
+  // Compact text representation of the sheet for Sparky's system prompt.
+  function bidSheetForPrompt() {
+    const lines = ['BID SHEET (the user can see this on screen — refer to cells by column letter + row number, e.g. D14):', ''];
+    let rowNum = 1;
+    BID_ROWS.forEach(row => {
+      let line = `Row ${rowNum}: `;
+      if (row.type === 'header') {
+        line += '[A=Item] [B=Qty] [C=Unit Price] [D=Line Total]';
+      } else if (row.type === 'section') {
+        line += `=== ${row.A} ===`;
+      } else if (row.type === 'blank-row') {
+        line += '(blank divider row)';
+      } else {
+        const isBlank = (col) => row.blank && row.blank.includes(col);
+        const fmt = (col) => {
+          if (isBlank(col)) return 'BLANK';
+          const v = row[col];
+          if (v === undefined || v === null || v === '') return '-';
+          if (col === 'C' || col === 'D') return '$' + Number(v).toFixed(2);
+          return String(v);
+        };
+        line += `A="${row.A || ''}" B=${fmt('B')} C=${fmt('C')} D=${fmt('D')}`;
+        if (row.type === 'subtotal') line += '  [SUBTOTAL ROW]';
+        if (row.type === 'total') line += '  [GRAND TOTAL ROW]';
+      }
+      lines.push(line);
+      rowNum++;
+    });
+    return lines.join('\n');
+  }
+
+  function buildSystemPrompt() {
+    const levelNote = {
+      apprentice: 'The user is an APPRENTICE. They likely have minimal Excel experience and may not know technical terms. Use plain language. Walk one step at a time. Never assume they know a function exists — introduce it before using it.',
+      journeyman: 'The user is a JOURNEYMAN. They probably know Excel basics (SUM, simple formulas) but may not know intermediate functions (SUMIF, IF). Skip the very basics. Reach for the right function and explain when needed.',
+      master: 'The user is a MASTER ELECTRICIAN or business owner. Assume Excel comfort. Skip explanations of basic concepts. Be efficient.'
+    }[level];
+
+    return `You are SPARKY, an AI study companion built for electricians learning Excel for estimating and job costing.
+
+YOUR PEDAGOGICAL APPROACH — KOLB'S EXPERIENTIAL LEARNING CYCLE:
+You implement David Kolb's four-stage learning cycle in EVERY interaction:
+
+1. CONCRETE EXPERIENCE — They have a real bid sheet visible on their left.
+2. REFLECTIVE OBSERVATION — Before giving them an Excel function, ask what they're trying to figure out and how they'd do it on paper. Make them articulate the problem in their OWN words.
+3. ABSTRACT CONCEPTUALIZATION — Once they've described their reasoning, introduce the Excel function as the *abstraction* of what they just described.
+4. ACTIVE EXPERIMENTATION — Have them type the function into a specific cell on the bid sheet and tell you what number pops out.
+
+STAGE TAGS — REQUIRED:
+At the START of every response, include ONE of these markers in square brackets on its own first line:
+[REFLECT]   — asking them to articulate before giving the function
+[CONCEPT]   — introducing the Excel function/concept
+[APPLY]     — having them try it in a specific cell
+[CHALLENGE] — pushing them to extend or apply the concept further
+
+THE BID SHEET (you can see it; the user sees it on their left):
+${bidSheetForPrompt()}
+
+USING THE BID SHEET:
+- ALWAYS refer to specific cells by their reference (like D14 or "row 7, column D")
+- The blank cells (marked BLANK above) are what the user is filling in — guide them to those
+- When introducing a formula, give the EXACT formula they should type (e.g. \`=SUM(D4:D12)\`) and tell them which cell to type it in
+- The materials subtotal needs SUM, the labor line totals need multiplication (B*C), the labor subtotal needs another SUM, then materials markup (25%), sales tax on materials (7%), and the grand total
+
+VOICE AND TONE:
+- Trade-smart older sibling, not a tutor or corporate help bot
+- Direct. No fluff.
+- Never say "Great question!" or "Awesome!" — patronizing
+- Use trade language naturally ("the bid," "the run," "labor units")
+- Tight responses. 3-5 sentences usually. They're working, not reading.
+
+LEVEL ADAPTATION:
+${levelNote}
+
+NEVER:
+- Give the formula before asking them to articulate the problem (skips REFLECT — the most important stage)
+- Lecture about Excel theory without grounding in the bid sheet
+- Use VLOOKUP — the person who built you teaches INDEX/MATCH/MATCH instead
+- Use childish language or excessive emoji
+
+YOU EXIST BECAUSE:
+A working electrician shouldn't have to call their mom for Excel help. (The person who built you has a son who is an electrician. He calls her. That's why you're here.)`;
+  }
+
+  function setLevel(newLevel, btn) {
+    level = newLevel;
+    document.querySelectorAll('.level-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      send();
+    }
+  }
+
+  function renderTurn(role, text) {
+    const conv = document.getElementById('conversation');
+    const turn = document.createElement('div');
+    turn.className = `turn ${role === 'user' ? 'user' : 'sparky'}`;
+
+    const label = document.createElement('div');
+    label.className = 'turn-label';
+    label.textContent = role === 'user' ? 'You' : 'Sparky';
+    turn.appendChild(label);
+
+    const body = document.createElement('div');
+    body.className = 'turn-body';
+
+    if (role !== 'user') {
+      const stageMatch = text.match(/^\s*\[(REFLECT|CONCEPT|APPLY|CHALLENGE)\]\s*\n?/);
+      if (stageMatch) {
+        text = text.replace(stageMatch[0], '').trim();
+        const stagePill = document.createElement('span');
+        stagePill.className = 'stage-tag';
+        stagePill.textContent = stageMatch[1];
+        label.appendChild(stagePill);
+      }
+    }
+
+    const html = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+      .replace(/`(.+?)`/g, '<code>$1</code>')
+      .replace(/\n/g, '<br>');
+    body.innerHTML = html;
+
+    turn.appendChild(body);
+    conv.appendChild(turn);
+    conv.scrollTop = conv.scrollHeight;
+    return turn;
+  }
+
+  async function send() {
+    const input = document.getElementById('input');
+    const text = input.value.trim();
+    if (!text) return;
+
+    const sendBtn = document.getElementById('send-btn');
+    sendBtn.disabled = true;
+    input.value = '';
+
+    renderTurn('user', text);
+    history.push({ role: 'user', content: text });
+
+    const conv = document.getElementById('conversation');
+    const thinking = document.createElement('div');
+    thinking.className = 'turn sparky';
+    thinking.innerHTML = `<div class="turn-label">Sparky</div><div class="turn-body"><span class="thinking">working it through</span></div>`;
+    conv.appendChild(thinking);
+    conv.scrollTop = conv.scrollHeight;
+
+    try {
+      const messages = [
+        { role: 'system', content: buildSystemPrompt() },
+        ...history
+      ];
+
+      const res = await fetch(OLLAMA_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: MODEL,
+          messages,
+          stream: false,
+          options: {
+            temperature: 0.5,
+            num_predict: 700,
+            num_ctx: 8192
+          }
+        })
+      });
+
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+
+      const data = await res.json();
+      console.log('Ollama response:', data);
+      const reply = data.message?.content || data.response || '(empty response)';
+
+      thinking.remove();
+      renderTurn('sparky', reply);
+      history.push({ role: 'assistant', content: reply });
+
+    } catch (err) {
+      console.error(err);
+      thinking.remove();
+      renderTurn('sparky', `[CONCEPT]\nCan't reach the model. Make sure Ollama is running and that you've set OLLAMA_ORIGINS="*" so the browser can talk to it. Error: ${err.message}`);
+    } finally {
+      sendBtn.disabled = false;
+      input.focus();
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', () => {
+    renderSheet();
+    document.getElementById('input').focus();
+  });
+</script>
+
+</body>
+</html>
