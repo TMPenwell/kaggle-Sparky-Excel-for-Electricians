@@ -62,6 +62,8 @@ Every Sparky response is tagged with the Kolb stage it's executing — visible t
 
 ![Kolb stage tags in action](screenshots/sparky_kolb_in_action.png)
 
+<img width="1377" height="847" alt="image" src="https://github.com/user-attachments/assets/55d4e822-3ca5-4aec-929b-2ed619abe7d6" />
+
 ---
 
 ## What you see when you open it
