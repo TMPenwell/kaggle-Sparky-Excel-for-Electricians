@@ -6,6 +6,8 @@ Built on David Kolb's Experiential Learning Cycle. Runs 100% locally on Gemma 4 
 > _Submission for the [Kaggle × Google Gemma 4 Good Hackathon](https://www.kaggle.com/competitions/google-gemma-3n-hackathon), May 2026._
 
 ![Sparky main screen](screenshots/sparky_main.png)
+<img width="1468" height="848" alt="image" src="https://github.com/user-attachments/assets/1ce81ee0-e145-4678-8c3f-286e6234cf33" />
+
 
 YouTube link https://youtu.be/ZeA8lEGZfew 
 
@@ -43,7 +45,7 @@ It doesn't have to be.
 
 ## What Sparky does differently
 
-Sparky isn't a chatbot that answers Excel questions. ChatGPT already does that, badly. Sparky is a **structured implementation of David Kolb's Experiential Learning Cycle** — the same framework I'm being formally certified in through Ohio University's [BRICKS Bridges Learning and Doing](https://www.ohio.edu/curriculum/bricks-bridges) program.
+Sparky isn't a chatbot that answers Excel questions. ChatGPT already does that, badly. Sparky is a **structured implementation of David Kolb's Experiential Learning Cycle**.
 
 Kolb's cycle says learning happens through four stages, in order:
 
