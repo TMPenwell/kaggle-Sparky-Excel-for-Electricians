@@ -214,28 +214,4 @@ The technical pitch for running Gemma 4 locally via Ollama.
 
 ---
 
-## How to use this document
 
-**For the Kaggle writeup:** Pull 2-3 specific source URLs into the "Problem" section. The Penn Foster curriculum link + the electrician forum quote + one Excel-template-vendor link is enough to make the case watertight in 3-4 sentences.
-
-**For the video:** You don't need to cite sources verbally — but the b-roll segment (0:20–0:50, "The Problem") could show screenshots of:
-1. The Penn Foster curriculum page
-2. The Jobber or Simpro Excel template page
-3. The electrician forum thread
-
-Three quick screen captures, no narration over them, just lets the viewer's eye take in the evidence.
-
-**For the README:** Already references Penn Foster, IBEW, IEC, the forum quote. Update to add the Jobber/Simpro/ServiceTitan evidence about the demand side — that's the half of the case currently underbacked.
-
-**For your son's eye:** If he reads through this, the strongest emotional pull is probably the electrician forum thread. That's his peers talking. Worth showing him.
-
----
-
-## What I'd push you on
-
-The Penn-Foster-doesn't-teach-Excel claim is solid and well-sourced. **The half of the story that's underdeveloped is the demand side** — *what working electricians actually do with Excel.* If you want the pitch to be truly bulletproof, the strongest move is:
-
-1. Spend 5 minutes texting your son: *"What do you actually use Excel for at work? When does it come up?"*
-2. Whatever he says, that's your video opener line.
-
-His real, lived voice will hit harder than any forum quote. Even if it's something boring like *"tracking my hours"* — that's better than every estimating-software vendor's marketing copy combined.
