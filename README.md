@@ -7,6 +7,8 @@ Built on David Kolb's Experiential Learning Cycle. Runs 100% locally on Gemma 4 
 
 ![Sparky main screen](screenshots/sparky_main.png)
 
+YouTube link https://youtu.be/ZeA8lEGZfew 
+
 ---
 
 ## The story
