@@ -203,7 +203,7 @@ This is your academic backing. Not contestable — it's a well-established educa
 
 The technical pitch for running Gemma 4 locally via Ollama.
 
-**Why it's defensible:**
+**Why This is Important**
 1. **Privacy** — Bid data is competitively sensitive. Contractors don't want their pricing, labor rates, or markups sitting in someone else's training data.
 2. **Connectivity** — Job sites, rural areas, and construction trailers often have unreliable WiFi.
 3. **Cost** — Pay-per-token APIs aren't viable for educational deployment at scale. A one-time setup is.
