@@ -139,4 +139,4 @@ The download uses [SheetJS](https://sheetjs.com/), which loads from a CDN. If yo
 
 ## Asking for help
 
-Found a bug or got stuck somewhere this guide doesn't cover? [Open an issue](https://github.com/TMPenwell/sparky-excel-for-electricians/issues) and I'll try to help.
+Found a bug or got stuck somewhere this guide doesn't cover? [Open an issue]([https://github.com/TMPenwell/sparky-excel-for-electricians/issues)](https://github.com/TMPenwell/kaggle-Sparky-Excel-for-Electricians/issues) and I'll try to help.
